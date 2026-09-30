@@ -1,4 +1,4 @@
-import { StudentRecord, EXACT_SHEET_COLUMNS } from '../types/crm';
+import { StudentRecord } from '../types/crm';
 
 export const SAMPLE_SHEET_ROW: StudentRecord = {
   id: 'stu-sample-1',
@@ -18,9 +18,7 @@ export const SAMPLE_SHEET_ROW: StudentRecord = {
   academicYear: '2026-2027',
 };
 
-const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/18l36z6AA70UwTLCEGuxMjYuVmTImxG1G1DSb5yb-Q6I/edit?gid=850970956';
-const STORAGE_KEY = 'rising_glory_school_crm_data_v4';
-const CONFIG_KEY = 'rising_glory_school_crm_db_url_v4';
+const STORAGE_KEY = 'rising_glory_school_crm_data_v5';
 
 export class SheetService {
   static getStoredRecords(): StudentRecord[] {
@@ -49,124 +47,6 @@ export class SheetService {
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       // ignore
-    }
-  }
-
-  static getSavedSourceUrl(): string {
-    return localStorage.getItem(CONFIG_KEY) || DEFAULT_SHEET_URL;
-  }
-
-  static saveSourceUrl(url: string) {
-    localStorage.setItem(CONFIG_KEY, url);
-  }
-
-  static normalizeGoogleSheetUrl(rawUrl: string): string {
-    const trimmed = rawUrl.trim();
-    if (!trimmed) return '';
-
-    if (trimmed.includes('/export?format=csv') || trimmed.includes('/pub?output=csv')) {
-      return trimmed;
-    }
-
-    const match = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if (match && match[1]) {
-      const sheetId = match[1];
-      const gidMatch = trimmed.match(/[?&#]gid=([0-9]+)/);
-      const gidPart = gidMatch ? `&gid=${gidMatch[1]}` : '';
-      return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv${gidPart}`;
-    }
-
-    return trimmed;
-  }
-
-  /**
-   * Fetches data from ANY database endpoint or Google Sheet URL in the frontend.
-   * Supports:
-   * - REST API JSON endpoints (e.g. Supabase, Firebase, mockapi, backend API)
-   * - Google Sheets published CSV / export URLs
-   * - CORS proxy fallback
-   */
-  static async fetchFromAnyDatabase(url: string): Promise<{ success: boolean; data?: StudentRecord[]; error?: string }> {
-    const trimmed = url.trim();
-    if (!trimmed) {
-      return { success: false, error: 'Database or Spreadsheet URL cannot be empty.' };
-    }
-
-    const isGoogleSheet = trimmed.includes('docs.google.com/spreadsheets');
-    const fetchUrl = isGoogleSheet ? this.normalizeGoogleSheetUrl(trimmed) : trimmed;
-
-    try {
-      let response: Response;
-      try {
-        response = await fetch(fetchUrl, {
-          method: 'GET',
-          headers: { Accept: 'application/json, text/csv, text/plain, */*' },
-        });
-      } catch (corsErr) {
-        // Fallback through proxy for CORS-restricted endpoints
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(fetchUrl)}`;
-        response = await fetch(proxyUrl);
-      }
-
-      if (!response.ok) {
-        return {
-          success: false,
-          error: `HTTP Error ${response.status}: Unable to connect to database endpoint.`,
-        };
-      }
-
-      const contentType = response.headers.get('content-type') || '';
-      let text = await response.text();
-
-      // Check if response is JSON (REST API / Database)
-      if (contentType.includes('application/json') || text.trim().startsWith('[') || text.trim().startsWith('{')) {
-        try {
-          const json = JSON.parse(text);
-          const arrayData = Array.isArray(json) ? json : json.data || json.records || json.students || [];
-
-          if (Array.isArray(arrayData) && arrayData.length > 0) {
-            const mappedRecords: StudentRecord[] = arrayData.map((item: any, idx: number) => ({
-              id: item.id || `db-row-${Date.now()}-${idx}`,
-              studentId: item.studentId || item.rollNo || item.roll_number || item.student_id || item['Student ID'] || `STU-${1000 + idx + 1}`,
-              applicationNumber: item.applicationNumber || item.appNo || item.application_number || item['Application Number'] || `APP-2026-${String(idx + 1).padStart(3, '0')}`,
-              firstName: item.firstName || item.first_name || item['First Name'] || '',
-              lastName: item.lastName || item.last_name || item['Last Name'] || '',
-              dateOfBirth: item.dateOfBirth || item.dob || item.date_of_birth || item['Date of Birth'] || '',
-              gender: item.gender || item['Gender'] || 'Male',
-              bloodGroup: item.bloodGroup || item.blood_group || item['Blood Group'] || 'O+',
-              nationality: item.nationality || item['Nationality'] || '',
-              previousSchool: item.previousSchool || item.prev_school || item.previous_school || item['Previous School'] || '',
-              previousGrade: item.previousGrade || item.prev_grade || item.previous_grade || item['Previous Grade'] || '',
-              applicationDate: item.applicationDate || item.app_date || item.application_date || item['Application Date'] || '',
-              applyingGrade: item.applyingGrade || item.grade || item.applying_grade || item['Applying Grade'] || '',
-              admissionType: item.admissionType || item.admission_type || item['Admission Type'] || 'New',
-              academicYear: item.academicYear || item.academic_year || item['Academic Year'] || '2026-2027',
-            }));
-
-            this.saveSourceUrl(url);
-            return { success: true, data: mappedRecords };
-          }
-        } catch (jsonErr) {
-          // Fall back to CSV parsing
-        }
-      }
-
-      // Parse as CSV/TSV
-      const records = this.parseCsvOrTsv(text);
-      if (records.length === 0) {
-        return {
-          success: false,
-          error: 'Connected to source, but no valid data rows were returned.',
-        };
-      }
-
-      this.saveSourceUrl(url);
-      return { success: true, data: records };
-    } catch (err: any) {
-      return {
-        success: false,
-        error: err.message || 'Network error fetching data from database endpoint.',
-      };
     }
   }
 

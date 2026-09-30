@@ -6,8 +6,7 @@ import {
   Users, 
   Calendar, 
   Layers, 
-  Database, 
-  CheckCircle2,
+  CheckCircle2, 
   X,
   Sparkles
 } from 'lucide-react';
@@ -17,7 +16,6 @@ interface SpreadsheetViewProps {
   students: StudentRecord[];
   onSelectStudent: (student: StudentRecord) => void;
   onDataPasted: (records: StudentRecord[]) => void;
-  onOpenDatabaseModal: () => void;
   onLoadSample: () => void;
 }
 
@@ -25,7 +23,6 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   students,
   onSelectStudent,
   onDataPasted,
-  onOpenDatabaseModal,
   onLoadSample,
 }) => {
   const [rollNumberInput, setRollNumberInput] = useState('');
@@ -124,25 +121,17 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
               <span aria-hidden="true">·</span>
               <span>School CRM System</span>
               <span aria-hidden="true">·</span>
-              <span className="font-mono text-[11px]">Database Frontend Sync</span>
+              <span className="font-mono text-[11px]">Admissions & Student Management</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-semibold tracking-tight text-[#1E252B]">
               Student Admissions & Records Dashboard
             </h1>
             <p className="text-xs text-[#57534E] mt-1 max-w-2xl leading-relaxed">
-              Unified first page view presenting all 14 standard student admission fields (Columns A through N). Ingest and fetch data from any database or Google Sheet.
+              Unified first page view presenting all 14 standard student admission fields (Columns A through N).
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={onOpenDatabaseModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#1E3A2F] bg-[#F2F7F4] hover:bg-[#E5EFEA] border border-[#CDE0D5] rounded-xl transition-colors shadow-2xs"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Connect Database / Sheet</span>
-            </button>
-
             {students.length === 0 && (
               <button
                 onClick={onLoadSample}
@@ -191,10 +180,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
           <div className="bg-[#FAF9F6] border border-[#F2EFE9] p-3.5 rounded-xl">
             <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#78716C]">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>DATABASE STATUS</span>
+              <span>SYSTEM STATUS</span>
             </div>
             <div className="text-sm font-semibold text-emerald-700 mt-1 truncate">
-              {students.length > 0 ? 'Live Synchronized' : 'Ready to Ingest'}
+              Operational
             </div>
           </div>
         </div>
@@ -373,12 +362,12 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
                         <p className="font-serif font-semibold text-sm text-[#1E252B]">
                           {activeRollNumberFilter
                             ? `No student found with Roll Number "${activeRollNumberFilter}"`
-                            : 'Database Fields are Empty'}
+                            : 'Student Records are Empty'}
                         </p>
                         <p className="text-xs text-[#78716C]">
                           {activeRollNumberFilter
                             ? 'Please check the Roll Number or click "Show All Records".'
-                            : 'Click "Connect Database / Sheet" above to fetch student records from any database, or paste copied cells.'}
+                            : 'Paste student rows (Ctrl+V) or click "Load Sample Row" to populate records.'}
                         </p>
                       </div>
                     </td>
