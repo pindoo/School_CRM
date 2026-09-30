@@ -212,7 +212,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
               <Search className="w-4 h-4 text-[#A8A29E] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Enter Roll Number (e.g. STU-1001 or 1001)..."
+                placeholder="Enter Roll Number (001)..."
                 value={rollNumberInput}
                 onChange={(e) => {
                   setRollNumberInput(e.target.value);
