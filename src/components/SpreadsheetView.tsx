@@ -102,11 +102,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
         return isExactRollNumberMatch(s.studentId, activeRollNumberFilter);
       })
       .sort((a, b) => {
-        const valA = (a[sortKey] || '').toLowerCase();
-        const valB = (b[sortKey] || '').toLowerCase();
-        if (valA < valB) return sortAsc ? -1 : 1;
-        if (valA > valB) return sortAsc ? 1 : -1;
-        return 0;
+        const valA = String(a[sortKey] || '');
+        const valB = String(b[sortKey] || '');
+        const result = valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+        return sortAsc ? result : -result;
       });
   }, [students, activeRollNumberFilter, sortKey, sortAsc]);
 
@@ -215,7 +214,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
                 type="text"
                 placeholder="Enter Roll Number (e.g. STU-1001 or 1001)..."
                 value={rollNumberInput}
-                onChange={(e) => setRollNumberInput(e.target.value)}
+                onChange={(e) => {
+                  setRollNumberInput(e.target.value);
+                  if (e.target.value.trim() === '') setActiveRollNumberFilter('');
+                }}
                 className="w-full pl-10 pr-4 py-2.5 text-xs bg-[#FAF9F6] border border-[#E2DFD8] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1E3A2F] font-mono text-[#1E252B] placeholder:font-sans placeholder:text-[#A8A29E]"
               />
             </div>
