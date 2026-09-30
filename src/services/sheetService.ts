@@ -176,3 +176,36 @@ export class SheetService {
     return records;
   }
 }
+const N8N_URL =
+  import.meta.env.VITE_N8N_URL || 'https://leflox.app.n8n.cloud/webhook/fetch-data-sheet';
+
+const normKey = (k: string) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const N8N_FIELD_MAP: Record<string, keyof Omit<StudentRecord, 'id'>> = {
+  rollno: 'studentId', studentid: 'studentId',
+  applicationnumber: 'applicationNumber', applicationno: 'applicationNumber',
+  firstname: 'firstName', lastname: 'lastName', dateofbirth: 'dateOfBirth',
+  gender: 'gender', bloodgroup: 'bloodGroup', nationality: 'nationality',
+  previousschool: 'previousSchool', previousgrade: 'previousGrade',
+  applicationdate: 'applicationDate', applyinggrade: 'applyingGrade',
+  admissiontype: 'admissionType', academicyear: 'academicYear',
+};
+
+export async function fetchStudentsFromN8n(): Promise<StudentRecord[]> {
+  const res = await fetch(N8N_URL);
+  if (!res.ok) throw new Error(`n8n returned HTTP ${res.status}`);
+  const rows: Record<string, unknown>[] = await res.json();
+  return rows.map((row, idx) => {
+    const rec: StudentRecord = {
+      id: `row-${row.row_number ?? idx}`, studentId: '', applicationNumber: '',
+      firstName: '', lastName: '', dateOfBirth: '', gender: '', bloodGroup: '',
+      nationality: '', previousSchool: '', previousGrade: '', applicationDate: '',
+      applyingGrade: '', admissionType: '', academicYear: '',
+    };
+    for (const [key, value] of Object.entries(row)) {
+      const field = N8N_FIELD_MAP[normKey(key)];
+      if (field) rec[field] = value == null ? '' : String(value);
+    }
+    return rec;
+  });
+}
